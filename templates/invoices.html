@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Invoices - Shop Billing System{% endblock %}
+{% block page_title %}Invoice History{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-file-invoice"></i> All Invoices
+                </h6>
+                <a href="{{ url_for('billing') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-plus"></i> Create New Bill
+                </a>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped align-middle">
+                        <thead class="table-dark text-center">
+                            <tr>
+                                <th>Bill Number</th>
+                                <th>Customer</th>
+                                <th>Subtotal (₹)</th>
+                                <th>GST (₹)</th>
+                                <th>Final Amount (₹)</th>
+                                <th>Payment Method</th>
+                                <th>Date & Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            {% for invoice in invoices %}
+                            <tr>
+                                <!-- Bill Number -->
+                                <td><strong>{{ invoice[1] }}</strong></td>
+
+                                <!-- Customer -->
+                                <td>{{ invoice[2] or 'Walk-in Customer' }}</td>
+
+                                <!-- Subtotal -->
+                                <td>₹{{ "%.2f"|format(invoice[3] | float) }}</td>
+
+                                <!-- GST -->
+                                <td>₹{{ "%.2f"|format(invoice[4] | float) }}</td>
+
+                                <!-- Final Amount -->
+                                <td><strong>₹{{ "%.2f"|format(invoice[5] | float) }}</strong></td>
+
+                                <!-- Payment Method (Corrected Display) -->
+                                <td>
+                                    {% if invoice[6] == 'Cash' %}
+                                        <span class="badge bg-secondary">Cash</span>
+                                    {% elif invoice[6] == 'Card' %}
+                                        <span class="badge bg-primary">Card</span>
+                                    {% elif invoice[6] == 'UPI' %}
+                                        <span class="badge bg-success">UPI</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Date & Time -->
+                                <td>{{ invoice[7].strftime('%Y-%m-%d %H:%M') }}</td>
+
+                                <!-- Actions -->
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('invoice_detail', bill_id=invoice[0]) }}" 
+                                           class="btn btn-info text-white">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <a href="{{ url_for('generate_pdf', bill_id=invoice[0]) }}" 
+                                           class="btn btn-success text-white">
+                                            <i class="fas fa-download"></i> PDF
+                                        </a>
+                                        <a href="{{ url_for('print_invoice', bill_id=invoice[0]) }}" 
+                                           class="btn btn-dark text-white" target="_blank">
+                                            <i class="fas fa-print"></i> Print
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <i class="fas fa-file-invoice fa-2x mb-3"></i><br>
+                                    No invoices found. 
+                                    <a href="{{ url_for('billing') }}">Create your first bill</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

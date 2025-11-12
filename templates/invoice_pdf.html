@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Invoice {{ bill[2] }} - Shop Billing System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 12px;
+            background-color: #f8f9fa;
+            color: #212529;
+            margin: 0;
+            padding: 0;
+        }
+
+        .invoice-container {
+            width: 90%;
+            max-width: 900px;
+            background: #fff;
+            margin: 30px auto;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .invoice-header {
+            background-color: #0d6efd;
+            color: #fff;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .invoice-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .company-info {
+            padding: 25px 30px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .company-info h3 {
+            color: #0d6efd;
+            margin: 0 0 5px 0;
+        }
+
+        .company-info p {
+            margin: 2px 0;
+            color: #555;
+            font-size: 13px;
+        }
+
+        /* Customer + Payment Info */
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 20px 30px;
+            background-color: #f9fafb;
+        }
+
+        .info-card {
+            width: 48%;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 15px 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .info-card strong {
+            display: block;
+            color: #0d6efd;
+            margin-bottom: 10px;
+        }
+
+        .info-card p {
+            margin: 3px 0;
+            font-size: 13px;
+        }
+
+        /* Table */
+        table {
+            width: 95%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #0d6efd;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        td.text-right { text-align: right; }
+        td.text-center { text-align: center; }
+
+        /* Totals */
+        tfoot td {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+
+        tfoot tr:last-child td {
+            background-color: #e7f1ff;
+            color: #0d6efd;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            padding: 15px 30px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .footer strong {
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="invoice-container">
+
+    <!-- Header -->
+    <div class="invoice-header">
+        <h2>Invoice: {{ bill[2] }}</h2>
+        <span>Generated on: {{ bill[15].strftime('%Y-%m-%d %H:%M:%S') }}</span>
+    </div>
+
+    <!-- Company Info -->
+    <div class="company-info">
+        <h3>Shop Billing System</h3>
+        <p>123 College Street, Academic City, AC 12345</p>
+        <p>Phone: (555) 123-4567 | Email: shop@college.edu</p>
+    </div>
+
+    <!-- Customer + Payment -->
+    <div class="info-section">
+        <div class="info-card">
+            <strong>Bill To:</strong>
+            {% if bill[16] %}
+                <p><b>Name:</b> {{ bill[16] }}</p>
+                <p><b>Phone:</b> {{ bill[17] or 'N/A' }}</p>
+                <p><b>Email:</b> {{ bill[18] or 'N/A' }}</p>
+                <p><b>Address:</b> {{ bill[19] or 'N/A' }}</p>
+            {% else %}
+                <p>Walk-in Customer</p>
+            {% endif %}
+        </div>
+
+        <div class="info-card">
+            <strong>Invoice Details:</strong>
+            <p><b>Invoice No:</b> {{ bill[2] }}</p>
+            <p><b>Date:</b> {{ bill[15].strftime('%B %d, %Y') }}</p>
+            <p><b>Time:</b> {{ bill[15].strftime('%I:%M %p') }}</p>
+            <p><b>Payment:</b> {{ bill[14] }}</p>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th class="text-right">Unit Price (₹)</th>
+                <th class="text-center">Qty</th>
+                <th class="text-right">Total (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item[6] }}</td>
+                <td class="text-right">₹{{ "%.2f"|format(item[4]) }}</td>
+                <td class="text-center">{{ item[3] }}</td>
+                <td class="text-right">₹{{ "%.2f"|format(item[5]) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-right">Subtotal:</td>
+                <td class="text-right">₹{{ "%.2f"|format(bill[3]) }}</td>
+            </tr>
+            {% if bill[6] > 0 %}
+            <tr>
+                <td colspan="4" class="text-right">Discount ({{ bill[4] }}):</td>
+                <td class="text-right">-₹{{ "%.2f"|format(bill[6]) }}</td>
+            </tr>
+            {% endif %}
+            {% if bill[8] == 'cgst_sgst' %}
+            <tr>
+                <td colspan="4" class="text-right">CGST (9%):</td>
+                <td class="text-right">₹{{ "%.2f"|format(bill[9]) }}</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="text-right">SGST (9%):</td>
+                <td class="text-right">₹{{ "%.2f"|format(bill[10]) }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-right">IGST (18%):</td>
+                <td class="text-right">₹{{ "%.2f"|format(bill[11]) }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td colspan="4" class="text-right">Grand Total:</td>
+                <td class="text-right"><strong>₹{{ "%.2f"|format(bill[13]) }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>Thank you for your business!</strong></p>
+        <p>Goods once sold cannot be returned or exchanged unless defective.</p>
+        <p>This is a computer-generated invoice.</p>
+    </div>
+
+</div>
+
+</body>
+</html>

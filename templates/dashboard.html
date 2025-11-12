@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Shop Billing System{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Today's Sales -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Today's Sales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ "%.2f"|format(today_sales) }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-rupee-sign fa-3x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Sales -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Monthly Sales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ "%.2f"|format(monthly_sales) }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-chart-line fa-3x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Products -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Products</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_products }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-box fa-3x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Bills -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Bills</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_bills }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-3x text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Bills -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h6 class="m-0 font-weight-bold"><i class="fas fa-receipt"></i> Recent Bills</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Bill Number</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in recent_bills %}
+                            <tr>
+                                <td>{{ bill[1] }}</td>
+                                <td>{{ bill[2] or 'Walk-in Customer' }}</td>
+                                <td>₹{{ "%.2f"|format(bill[3]) }}</td>
+                                <td>{{ bill[4].strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('invoice_detail', bill_id=bill[0]) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">
+                                    No recent bills found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mt-4">
+    <!-- Weekly Sales Chart -->
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h6 class="m-0 font-weight-bold"><i class="fas fa-chart-line"></i> Weekly Sales Overview</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="salesChart" height="130"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Availability Chart -->
+    <div class="col-lg-5 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h6 class="m-0 font-weight-bold"><i class="fas fa-chart-pie"></i> Stock Availability</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="stockChart" height="130"></canvas>
+            </div>
+            <div class="row mt-4">
+  <div class="col-lg-7"><canvas id="salesChart"></canvas></div>
+  <div class="col-lg-5"><canvas id="stockChart"></canvas></div>
+</div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    // === Weekly Sales Line Chart ===
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: {{ labels | tojson | safe }},
+            datasets: [{
+                label: 'Sales (₹)',
+                data: {{ sales | tojson | safe }},
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13,110,253,0.3)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2,
+                pointBackgroundColor: '#0d6efd'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // === Stock Availability Pie Chart ===
+    const stockCtx = document.getElementById('stockChart').getContext('2d');
+    new Chart(stockCtx, {
+        type: 'doughnut', // doughnut looks nicer for stock visualization
+        data: {
+            labels: {{ stock_labels | tojson | safe }},
+            datasets: [{
+                data: {{ stock_values | tojson | safe }},
+                backgroundColor: [
+                    '#0d6efd', '#198754', '#ffc107', '#dc3545', '#6610f2',
+                    '#20c997', '#fd7e14', '#6f42c1', '#0dcaf0', '#adb5bd'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { boxWidth: 15 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            return `${label}: ${value} units`;
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Stock Available per Product'
+                }
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}

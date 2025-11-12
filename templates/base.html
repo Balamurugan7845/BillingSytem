@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Shop Billing System{% endblock %}</title>
+    
+   
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+  
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h3><i class="fas fa-store"></i> ShopBilling</h3>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+            </a></li>
+            <li><a href="{{ url_for('products') }}" class="{% if request.endpoint == 'products' %}active{% endif %}">
+                <i class="fas fa-box"></i> <span>Products</span>
+            </a></li>
+            <li><a href="{{ url_for('customers') }}" class="{% if request.endpoint == 'customers' %}active{% endif %}">
+                <i class="fas fa-users"></i> <span>Customers</span>
+            </a></li>
+            <li><a href="{{ url_for('billing') }}" class="{% if request.endpoint == 'billing' %}active{% endif %}">
+                <i class="fas fa-receipt"></i> <span>Billing</span>
+            </a></li>
+            <li><a href="{{ url_for('invoices') }}" class="{% if request.endpoint == 'invoices' %}active{% endif %}">
+                <i class="fas fa-file-invoice"></i> <span>Invoices</span>
+            </a></li>
+            <li><a href="{{ url_for('logout') }}">
+                <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+            </a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <nav class="navbar">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h4">
+                    {% block page_title %}{% endblock %}
+                </span>
+                <div class="d-flex align-items-center">
+                    <span class="me-3"><i class="fas fa-user-circle"></i> {{ current_user.username }}</span>
+                </div>
+            </div>
+        </nav>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+    {% else %}
+        {% block auth_content %}{% endblock %}
+    {% endif %}
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>   
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>   
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block scripts %}{% endblock %}
+    
+</body>
+</html>

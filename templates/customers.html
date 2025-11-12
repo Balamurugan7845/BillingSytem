@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Customers - Shop Billing System{% endblock %}
+{% block page_title %}Customer Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-primary text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Customers</div>
+                        <div class="h5 mb-0">{{ customers|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-success text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Active Today</div>
+                        <div class="h5 mb-0" id="todayCustomers">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-check fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-info text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">With Phone</div>
+                        <div class="h5 mb-0" id="customersWithPhone">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-phone fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-warning text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">With Email</div>
+                        <div class="h5 mb-0" id="customersWithEmail">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-envelope fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold"><i class="fas fa-users"></i> Customers List</h6>
+                <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                    <i class="fas fa-user-plus"></i> Add New Customer
+                </button>
+            </div>
+
+            <div class="card-body">
+
+                <form method="GET" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control"
+                               placeholder="Search customers..." value="{{ search }}">
+                        <button class="btn btn-outline-success" type="submit"><i class="fas fa-search"></i></button>
+
+                        {% if search %}
+                        <a href="{{ url_for('customers') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Address</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        {% for c in customers %}
+                            <tr class="customer-row"
+                                data-phone="{{ c.phone or '' }}"
+                                data-email="{{ c.email or '' }}"
+                                data-created="{{ c.created_at }}">
+                                
+                                <td>{{ c.id }}</td>
+                                <td>{{ c.name }}</td>
+                                <td>{{ c.phone or 'N/A' }}</td>
+                                <td>{{ c.email or 'N/A' }}</td>
+                                <td>{{ c.address or 'N/A' }}</td>
+                                <td>{{ c.created_at }}</td>
+
+                                <td>
+                                    <button class="btn btn-warning btn-sm edit-customer"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editCustomerModal"
+                                            data-id="{{ c.id }}"
+                                            data-name="{{ c.name }}"
+                                            data-phone="{{ c.phone }}"
+                                            data-email="{{ c.email }}"
+                                            data-address="{{ c.address }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+
+                                    <a href="{{ url_for('delete_customer', customer_id=c.id) }}" 
+                                       class="btn btn-danger btn-sm"
+                                       onclick="return confirm('Delete this customer?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="fas fa-users fa-2x mb-3"></i><br>
+                                    No customers found.
+                                </td>
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="addCustomerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-user-plus"></i> Add New Customer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" action="{{ url_for('add_customer') }}">
+                <div class="modal-body">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="text" name="phone" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea name="address" class="form-control" rows="1"></textarea>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success">Add Customer</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="editCustomerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Edit Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" id="editCustomerForm">
+                <div class="modal-body">
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" id="editCustomerName" name="name" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="text" id="editCustomerPhone" name="phone" class="form-control">
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="editCustomerEmail" name="email" class="form-control">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea id="editCustomerAddress" name="address" class="form-control"></textarea>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-warning">Update Customer</button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+// Edit button fills modal
+$('.edit-customer').click(function () {
+    $('#editCustomerName').val($(this).data('name'));
+    $('#editCustomerPhone').val($(this).data('phone'));
+    $('#editCustomerEmail').val($(this).data('email'));
+    $('#editCustomerAddress').val($(this).data('address'));
+    $('#editCustomerForm').attr('action', `/customers/edit/${$(this).data('id')}`);
+});
+
+// CALCULATE STATISTICS
+function calculateCustomerStats() {
+    const customers = {{ customers|tojson|safe }};
+
+    let today = new Date().toISOString().split("T")[0];
+    let todayCount = 0;
+    let withPhone = 0;
+    let withEmail = 0;
+
+    customers.forEach(c => {
+        if (c.created_at === today) todayCount++;
+        if (c.phone) withPhone++;
+        if (c.email) withEmail++;
+    });
+
+    document.getElementById("todayCustomers").textContent = todayCount;
+    document.getElementById("customersWithPhone").textContent = withPhone;
+    document.getElementById("customersWithEmail").textContent = withEmail;
+}
+
+document.addEventListener("DOMContentLoaded", calculateCustomerStats);
+</script>
+{% endblock %}

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Print Invoice {{ bill[2] }}</title>
+    <style>
+        body {
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 12px;
+            color: #000;
+            margin: 40px;
+        }
+        .invoice-header {
+            text-align: center;
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .invoice-header h2 {
+            color: #0d6efd;
+            margin: 0;
+        }
+        .details {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .details td {
+            vertical-align: top;
+            padding: 4px;
+        }
+        .bill-section {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .bill-section th, .bill-section td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: left;
+        }
+        .bill-section th {
+            background-color: #f2f2f2;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .no-border td {
+            border: none;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 11px;
+            text-align: center;
+        }
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="invoice-header">
+        <h2>Shop Billing System</h2>
+        <p>123 College Street, Academic City, AC 12345</p>
+        <p>Phone: (555) 123-4567 | Email: shop@college.edu</p>
+        <h3>TAX INVOICE</h3>
+    </div>
+
+    <table class="details">
+        <tr>
+            <td>
+                <strong>Bill To:</strong><br>
+                {% if bill[16] %}
+                    {{ bill[16] }}<br>
+                    {{ bill[17] or '' }}<br>
+                    {{ bill[18] or '' }}<br>
+                    {{ bill[19] or '' }}
+                {% else %}
+                    Walk-in Customer
+                {% endif %}
+            </td>
+            <td style="text-align:right;">
+                <strong>Invoice No:</strong> {{ bill[2] }}<br>
+                <strong>Date:</strong> {{ bill[15].strftime('%B %d, %Y') }}<br>
+                <strong>Time:</strong> {{ bill[15].strftime('%I:%M %p') }}<br>
+                <strong>Payment:</strong> {{ bill[14] }}
+            </td>
+        </tr>
+    </table>
+
+    <table class="bill-section">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th class="text-right">Unit Price (₹)</th>
+                <th class="text-center">Qty</th>
+                <th class="text-right">Total (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item[6] }}</td>
+                <td class="text-right">₹{{ "%.2f"|format(item[4]) }}</td>
+                <td class="text-center">{{ item[3] }}</td>
+                <td class="text-right">₹{{ "%.2f"|format(item[5]) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-right"><b>Subtotal:</b></td>
+                <td class="text-right">₹{{ "%.2f"|format(bill[3]) }}</td>
+            </tr>
+            {% if bill[6] > 0 %}
+            <tr>
+                <td colspan="4" class="text-right"><b>Discount ({{ bill[4] }}):</b></td>
+                <td class="text-right">-₹{{ "%.2f"|format(bill[6]) }}</td>
+            </tr>
+            {% endif %}
+            {% if bill[8] == 'cgst_sgst' %}
+            <tr>
+                <td colspan="4" class="text-right"><b>CGST (9%):</b></td>
+                <td class="text-right">₹{{ "%.2f"|format(bill[9]) }}</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="text-right"><b>SGST (9%):</b></td>
+                <td class="text-right">₹{{ "%.2f"|format(bill[10]) }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-right"><b>IGST (18%):</b></td>
+                <td class="text-right">₹{{ "%.2f"|format(bill[11]) }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td colspan="4" class="text-right"><b>Grand Total:</b></td>
+                <td class="text-right"><b>₹{{ "%.2f"|format(bill[13]) }}</b></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="footer">
+        <p><strong>Thank you for your business!</strong></p>
+        <p>Goods once sold cannot be returned or exchanged unless defective.</p>
+        <p>This is a computer-generated invoice.</p>
+    </div>
+
+    <div class="no-print" style="text-align:center; margin-top:20px;">
+        <button onclick="window.print()">🖨️ Print Invoice</button>
+    </div>
+</body>
+</html>

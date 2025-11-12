@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Print Bill{% endblock %}
+
+{% block content %}
+<div class="container mt-4" id="printSection">
+
+    <h2 class="text-center">SHOP BILL INVOICE</h2>
+    <hr>
+
+    <p><b>Bill No:</b> {{ bill[0] }}</p>
+    <p><b>Date:</b> {{ bill[12] }}</p>
+    <p><b>Payment Method:</b> {{ bill[2] }}</p>
+
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item[2] }}</td>
+                <td>₹{{ item[3] }}</td>
+                <td>{{ item[4] }}</td>
+                <td>₹{{ item[5] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h4 class="text-end">Final Amount: ₹{{ bill[11] }}</h4>
+
+    <button class="btn btn-primary w-100 mt-3" onclick="window.print()">Print Bill</button>
+</div>
+{% endblock %}

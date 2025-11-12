@@ -1,0 +1,631 @@
+{% extends "base.html" %}
+
+{% block title %}Billing - Shop Billing System{% endblock %}
+{% block page_title %}Create Bill{% endblock %}
+
+{% block content %}
+<style>
+  /* ===== Premium Layout C (Top / Middle / Bottom) ===== */
+  :root {
+    /* Premium matching colors from screenshot */
+    --primary:#4361ee;     /* Bright Blue */
+    --secondary:#3f37c9;
+    --success:#198754;
+    --danger:#dc3545;
+    --warning:#fbbc04;     /* Google Yellow */
+    --info:#0dcaf0;
+    --light:#ffffff;
+
+    --brand: var(--primary);
+    --brand-600:#0b5ed7;
+    --accent: var(--info);
+    --muted:#6c757d;
+    --bg:#f3f4f6;
+    --card:#ffffff;
+    --card-2:#fafafa;
+    --border:#e5e7eb;
+    --text:black;
+}
+
+  body {
+    background: linear-gradient(180deg, #f7faff, #eef3ff) !important;
+}
+
+  .premium-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.07);
+    overflow: hidden;
+}
+  .premium-header {
+    display:flex; 
+    align-items:center; 
+    gap:.75rem;
+    padding: .9rem 1.1rem;
+    background: var(--success);
+    border-bottom:1px solid var(--border);
+    color: var(--text);
+}
+  .premium-header .title { 
+    font-weight:700; 
+    letter-spacing:.2px; 
+}
+  
+
+  .form-label { 
+    color:var(--text); 
+    font-weight:600;
+}
+  .form-control, .form-select {
+    background: var(--light);
+    border:1px solid var(--light);
+    color: var(--secondary);
+    border: 1px solid var(--text);
+}
+  .form-control:focus, .form-select:focus { 
+    border-color: var(--brand); 
+    box-shadow: 0 0 0 .2rem rgba(59,130,246,.25); 
+}
+
+  .btn-brand ,  .btn-ghost { 
+    background: var(--brand); 
+    border: none; 
+    color:white; 
+}
+  .btn-brand:hover ,.btn-ghost:hover { 
+    background: var(--brand-600); 
+}
+  
+  .btn-danger { 
+    background: var(--danger); 
+    border:none; 
+}
+
+  /* Suggestion box */
+  .suggestion-box { 
+    max-height: 220px; 
+    overflow:auto;
+    width: 100%; 
+    top: 100%; 
+    left: 0; 
+}
+  .suggestion-box .list-group-item {
+    background: var(--light);
+    color: var(--secondary);
+    border-color: var(--border);
+    cursor:pointer;
+}
+  .suggestion-box .list-group-item:hover {
+    background:#e2e8f0;
+}
+
+  /* Table */
+  table.table { color: var(--secondary); }
+  .table thead th {
+    background: var(--primary);
+    border-color: var(--border);
+    color: white;
+}
+  .table td, .table th {
+    border-color: var(--border);
+    vertical-align: middle;
+}
+  .table tfoot td { 
+    background: var(--light); 
+}
+
+  /* Sticky action bar (bottom summary) */
+  .summary-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 15;
+    background-color: var(--warning);
+    backdrop-filter: blur(6px);
+    border-top:1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .money { 
+    font-variant-numeric: tabular-nums; 
+    font-weight:700; 
+}
+  .muted { 
+    color: var(--text);
+ }
+  .kbd { 
+    background:#0b1324; 
+    border:1px solid #1e2a49; 
+    border-bottom-width:2px; 
+    padding: .05rem .35rem; 
+    border-radius:6px; 
+    font-size:.8rem; 
+    color:#d1d5db; 
+}
+
+  /* Utility */
+  .gap-12 { gap: 0.75rem; }
+  .gap-16 { gap: 1rem; }
+</style>
+
+<div class="container-fluid px-2 px-md-3 px-lg-4">
+  <!-- =================== TOP: Customer & Payment =================== -->
+  <div class="premium-card mb-3">
+    <div class="premium-header">
+      <i class="fas fa-user-circle fa-lg"></i>
+      <div class="title">Customer & Payment</div>
+      <!-- <div class="ms-auto subtle">Tip: Quick save (<span class="kbd">Ctrl</span>+<span class="kbd">S</span>), Add row (<span class="kbd">Enter</span>)</div> -->
+    </div>
+    <div class="p-3 p-md-4">
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label">Customer</label>
+          <select id="customerSelect" class="form-select">
+            <option value="">Walk-in Customer</option>
+            {% for customer in customers %}
+            <option value="{{ customer[0] }}">{{ customer[1] }} — {{ customer[2] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3 col-lg-2">
+          <label class="form-label">Payment Method</label>
+          <select id="paymentMethod" class="form-select">
+            <option value="Cash">Cash</option>
+            <option value="Card">Card</option>
+            <option value="UPI">UPI</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-lg-2">
+          <label class="form-label">GST Type</label>
+          <select id="gstType" class="form-select">
+            <option value="cgst_sgst">CGST + SGST (18%)</option>
+            <option value="igst">IGST (18%)</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-lg-2">
+          <label class="form-label">Discount Type</label>
+          <select id="discountType" class="form-select">
+            <option value="none">None</option>
+            <option value="percent">Percentage (%)</option>
+            <option value="flat">Flat (₹)</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-lg-2">
+          <label class="form-label">Discount Value</label>
+          <input type="number" id="discountValue" class="form-control" value="0" min="0">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== MIDDLE: Bill Items =================== -->
+  <div class="premium-card mb-3">
+    <div class="premium-header">
+      <i class="fas fa-receipt fa-lg"></i>
+      <div class="title">Bill Items</div>
+      <div class="ms-auto subtle">Scan/Type Product ID and hit <span class="kbd">Enter</span></div>
+    </div>
+    <div class="p-0">
+      <div class="table-responsive p-3">
+        <table class="table table-bordered align-middle" id="itemsTable">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 140px;">Product ID</th>
+              <th style="min-width: 280px;">Product Name</th>
+              <th style="width: 140px;">Price</th>
+              <th style="width: 90px;">Qty</th>
+              <th style="width: 160px;">Total</th>
+              <th style="width: 80px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="billItems">
+            <tr class="bill-row position-relative">
+              <td><input type="text" class="form-control product-id" placeholder="Scan or type" autocomplete="off"></td>
+              <td class="position-relative">
+                <input type="text" class="form-control product-name" placeholder="Search product" autocomplete="off">
+                <ul class="list-group position-absolute suggestion-box" style="display:none; z-index:1000;"></ul>
+              </td>
+              <td><input type="text" class="form-control price text-end" readonly></td>
+              <td><input type="number" class="form-control qty text-end" value="1" min="1"></td>
+              <td><input type="text" class="form-control total text-end" readonly></td>
+              <td class="text-center">
+                <button class="btn btn-danger btn-sm remove-row" title="Remove"><i class="fas fa-trash"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="d-flex gap-16 p-2 pt-0">
+          <button id="addRow" class="btn btn-ghost"><i class="fas fa-plus"></i> Add Row</button>
+          <button id="clearAll" class="btn btn-ghost"><i class="fas fa-broom"></i> Clear All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== BOTTOM: Sticky Summary =================== -->
+  <div class="summary-bar premium-card p-3">
+    <div class="d-flex flex-wrap align-items-center gap-16">
+      <div class="me-auto d-flex flex-wrap gap-16">
+        <div>
+          <div class="muted">Subtotal</div>
+          <div id="subtotal" class="money">₹0.00</div>
+        </div>
+        <div>
+          <div class="muted">Discount</div>
+          <div id="discountAmount" class="money">₹0.00</div>
+        </div>
+        <div id="cgstWrap">
+          <div class="muted">CGST (9%)</div>
+          <div id="cgst" class="money">₹0.00</div>
+        </div>
+        <div id="sgstWrap">
+          <div class="muted">SGST (9%)</div>
+          <div id="sgst" class="money">₹0.00</div>
+        </div>
+        <div id="igstWrap" style="display:none;">
+          <div class="muted">IGST (18%)</div>
+          <div id="igst" class="money">₹0.00</div>
+        </div>
+      </div>
+
+      <div class="text-end me-2">
+        <div class="muted">Total Amount</div>
+        <div id="finalTotal" class="h4 mb-0 money">₹0.00</div>
+      </div>
+
+      <div class="d-flex gap-12">
+        <button id="saveDraft" class="btn btn-ghost"><i class="far fa-save"></i> Save Draft <span class="kbd">Ctrl</span>+<span class="kbd">S</span></button>
+        <button id="generateBill" class="btn btn-brand btn-lg"><i class="fas fa-file-invoice"></i> Generate Bill</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+const fmt = new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:2 });
+const money = v => fmt.format(Number(v||0));
+const parseMoneyText = t => parseFloat(String(t||'').replace(/[^0-9.]/g,'')) || 0;
+
+function debounce(fn, delay=250){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), delay); } }
+
+async function fetchProducts(q){
+  try {
+    const r = await fetch(`/api/product/lookup?q=${encodeURIComponent(q)}`);
+    return await r.json();
+  } catch { return []; }
+}
+
+function fillRow(row, p){
+  row.querySelector('.product-id').value = p.id ?? '';
+  row.querySelector('.product-name').value = p.name ?? '';
+  row.querySelector('.price').value = Number(p.price||0).toFixed(2);
+  if(!row.querySelector('.qty').value) row.querySelector('.qty').value = 1;
+  calculateRow(row);
+}
+
+function calculateRow(row){
+  const price = parseFloat(row.querySelector('.price').value) || 0;
+  let qty = parseInt(row.querySelector('.qty').value) || 0;
+  if(qty < 1){ qty = 1; row.querySelector('.qty').value = 1; }
+  row.querySelector('.total').value = (price * qty).toFixed(2);
+  updateTotals();
+}
+
+
+function updateTotals(){
+  let subtotal = 0;
+  document.querySelectorAll('#billItems .bill-row .total')
+          .forEach(t => subtotal += parseFloat(t.value)||0);
+
+  const discountType = document.getElementById('discountType').value;
+  const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
+  let discountAmount = 0;
+
+  if(discountType === 'percent') discountAmount = subtotal * (discountValue/100);
+  else if(discountType === 'flat') discountAmount = discountValue;
+
+  if(discountAmount > subtotal) discountAmount = subtotal;
+
+  const afterDiscount = subtotal - discountAmount;
+
+  const gstType = document.getElementById('gstType').value;
+
+  let cgst=0, sgst=0, igst=0;
+
+  if(gstType === 'cgst_sgst'){
+    cgst = afterDiscount * 0.09;
+    sgst = afterDiscount * 0.09;
+    document.getElementById('cgstWrap').style.display = '';
+    document.getElementById('sgstWrap').style.display = '';
+    document.getElementById('igstWrap').style.display = 'none';
+  } else {
+    igst = afterDiscount * 0.18;
+    document.getElementById('cgstWrap').style.display = 'none';
+    document.getElementById('sgstWrap').style.display = 'none';
+    document.getElementById('igstWrap').style.display = '';
+  }
+
+  const finalTotal = afterDiscount + cgst + sgst + igst;
+
+  document.getElementById('subtotal').innerText = money(subtotal);
+  document.getElementById('discountAmount').innerText = money(discountAmount);
+  document.getElementById('cgst').innerText = money(cgst);
+  document.getElementById('sgst').innerText = money(sgst);
+  document.getElementById('igst').innerText = money(igst);
+  document.getElementById('finalTotal').innerText = money(finalTotal);
+}
+
+updateTotals();
+
+
+
+// Enter on Product ID
+document.addEventListener('keydown', async (e)=>{
+  if(!e.target.classList.contains('product-id')) return;
+  if(e.key !== 'Enter') return;
+  const row = e.target.closest('.bill-row');
+  const q = e.target.value.trim();
+  if(!q) return;
+  const data = await fetchProducts(q);
+  if(data.length === 1) fillRow(row, data[0]);
+});
+
+// Product name suggestions
+const handleNameInput = debounce(async (input)=>{
+  const row = input.closest('.bill-row');
+  const q = input.value.trim();
+  const box = row.querySelector('.suggestion-box');
+
+  if(!q){
+    box.style.display='none'; 
+    box.innerHTML='';
+    return;
+  }
+
+  const products = await fetchProducts(q);
+  box.innerHTML='';
+
+  if(!products.length){
+    box.style.display='none';
+    return;
+  }
+
+  products.forEach(p=>{
+    const li = document.createElement('li');
+    li.className = 'list-group-item suggestion';
+    li.textContent = `${p.name} — ${money(p.price)}`;
+    li.dataset.id = p.id;
+    li.dataset.name = p.name;
+    li.dataset.price = p.price;
+    box.appendChild(li);
+  });
+
+  box.style.display='block';
+}, 200);
+
+document.addEventListener('input', (e)=>{
+  if(e.target.classList.contains('product-name')) return handleNameInput(e.target);
+  if(e.target.classList.contains('qty')) return calculateRow(e.target.closest('.bill-row'));
+});
+
+// Click suggestion
+document.addEventListener('click', (e)=>{
+  if(!e.target.classList.contains('suggestion')) return;
+  const row = e.target.closest('.bill-row');
+  fillRow(row, {
+    id:e.target.dataset.id,
+    name:e.target.dataset.name,
+    price:e.target.dataset.price
+  });
+  row.querySelector('.suggestion-box').style.display='none';
+});
+
+// Add row
+document.getElementById('addRow').addEventListener('click', ()=>{
+  const first = document.querySelector('#billItems .bill-row');
+  const clone = first.cloneNode(true);
+  clone.querySelectorAll('input').forEach(i=> i.value='');
+  clone.querySelector('.qty').value = 1;
+  clone.querySelector('.suggestion-box').style.display='none';
+  document.getElementById('billItems').appendChild(clone);
+});
+
+// Clear rows
+document.getElementById('clearAll').addEventListener('click', ()=>{
+  const tbody = document.getElementById('billItems');
+  tbody.querySelectorAll('.bill-row').forEach((r,i)=>{ if(i>0) r.remove(); });
+  const row = tbody.querySelector('.bill-row');
+  row.querySelectorAll('input').forEach(i=> i.value='');
+  row.querySelector('.qty').value = 1;
+  updateTotals();
+});
+
+// Remove row
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.remove-row');
+  if(!btn) return;
+  const rows = document.querySelectorAll('#billItems .bill-row');
+  if(rows.length > 1){
+    btn.closest('.bill-row').remove();
+    updateTotals();
+  }
+});
+
+// Discount / GST changes
+['discountType','discountValue','gstType'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateTotals);
+  document.getElementById(id).addEventListener('change', updateTotals);
+});
+
+
+
+async function postJSON(url, data){
+  const r = await fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  });
+
+  // If server returned non-2xx, try to parse error JSON, else throw generic
+  if(!r.ok){
+    let errText = 'Bill not found';
+    try {
+      const j = await r.json();
+      errText = j.error || j.message || errText;
+    } catch(e){
+      // keep default
+    }
+    throw new Error(errText);
+  }
+
+  // Parse JSON, or throw if invalid
+  try {
+    return await r.json();
+  } catch(e){
+    throw new Error('Invalid server response');
+  }
+}
+
+function collectItems(){
+  const items = [];
+  document.querySelectorAll('#billItems .bill-row').forEach(row=>{
+    const id = row.querySelector('.product-id').value.trim();
+    const name = row.querySelector('.product-name').value.trim();
+    const price = parseFloat(row.querySelector('.price').value) || 0;
+    const qty = parseInt(row.querySelector('.qty').value) || 0;
+    const total = parseFloat(row.querySelector('.total').value) || 0;
+    if(id && name && qty>0){
+      items.push({ product_id:id, product_name:name, price, qty, total });
+    }
+  });
+  return items;
+}
+
+function plain(t){ return parseMoneyText(t); }
+
+function buildPayload(items){
+  return {
+    customer_id: document.getElementById('customerSelect').value,
+    payment_method: document.getElementById('paymentMethod').value,
+    discount_type: document.getElementById('discountType').value,
+    discount_value: parseFloat(document.getElementById('discountValue').value) || 0,
+    gst_type: document.getElementById('gstType').value,
+    subtotal: plain(document.getElementById('subtotal').innerText),
+    discount_amount: plain(document.getElementById('discountAmount').innerText),
+    cgst: plain(document.getElementById('cgst').innerText),
+    sgst: plain(document.getElementById('sgst').innerText),
+    igst: plain(document.getElementById('igst').innerText),
+    final_total: plain(document.getElementById('finalTotal').innerText),
+    items
+  };
+}
+
+const generateBtn = document.getElementById('generateBill');
+
+function showToast(msg, error=false){
+  let el = document.getElementById('miniToast');
+  if(!el){
+    el = document.createElement('div');
+    el.id='miniToast';
+    el.style.position='fixed';
+    el.style.right='16px';
+    el.style.bottom='16px';
+    el.style.zIndex='2000';
+    document.body.appendChild(el);
+  }
+
+  const n = document.createElement('div');
+  n.className = 'premium-card p-3 mt-2';
+  n.style.minWidth = '260px';
+  n.style.borderLeft = `4px solid ${error ? '#ef4444' : '#10b981'}`;
+  n.innerHTML = `
+    <div class="d-flex align-items-center gap-12">
+      <i class="${error ? 'fas fa-times-circle' : 'fas fa-check-circle'}"></i>
+      <div>${msg}</div>
+    </div>`;
+  el.appendChild(n);
+
+  setTimeout(()=>{ n.remove(); }, 3000);
+}
+
+// Single, consistent handler
+generateBtn.addEventListener('click', async ()=>{
+  const items = collectItems();
+  if(items.length === 0){
+    showToast('Please add at least one product!', true);
+    return;
+  }
+
+  const payload = buildPayload(items);
+
+  const prev = generateBtn.innerHTML;
+  generateBtn.disabled = true;
+  generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+  try {
+    const res = await postJSON('/createbill', payload);
+
+    // Ensure we got a proper success + bill_id
+    if(res && res.status === 'success' && res.bill_id){
+      window.location.href = `/invoices/${res.bill_id}/print`;
+      return;
+    }
+
+    // Server responded but missing expected data
+    const msg = (res && (res.error || res.message)) ? (res.error || res.message) : 'Bill not found';
+    showToast(`Server error: ${msg}`, true);
+
+  } catch(err){
+    console.error('Bill creation error:', err);
+    // Show specific server message when available
+    showToast(`Server error: ${err.message || 'Bill not found'}`, true);
+  } finally {
+    generateBtn.disabled = false;
+    generateBtn.innerHTML = prev;
+  }
+});
+
+// Save Draft handler
+const saveDraftBtn = document.getElementById('saveDraft');
+
+saveDraftBtn.addEventListener('click', async () => {
+  const items = collectItems();
+  if(items.length === 0){
+    showToast('Please add at least one product!', true);
+    return;
+  }
+
+  const payload = buildPayload(items);
+  payload.is_draft = true; // Mark as draft
+
+  const prev = saveDraftBtn.innerHTML;
+  saveDraftBtn.disabled = true;
+  saveDraftBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+  try {
+    const res = await postJSON('/savedraft', payload);
+
+    if(res && res.status === 'success'){
+      showToast('Draft saved successfully!', false);
+      return;
+    }
+
+    const msg = (res && (res.error || res.message)) ? (res.error || res.message) : 'Failed to save draft';
+    showToast(`Error: ${msg}`, true);
+
+  } catch(err){
+    console.error('Draft save error:', err);
+    showToast(`Error: ${err.message || 'Failed to save draft'}`, true);
+  } finally {
+    saveDraftBtn.disabled = false;
+    saveDraftBtn.innerHTML = prev;
+  }
+});
+
+</script>
+
+{% endblock %}

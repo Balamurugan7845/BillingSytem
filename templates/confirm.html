@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Confirm Payment</title>
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+    <div class="card shadow p-4">
+        <h3 class="mb-3">Payment Confirmation</h3>
+
+        <p><strong>Bill ID:</strong> {{ bill_id }}</p>
+
+        <form action="/complete-payment/{{ bill_id }}" method="POST">
+
+            {% if payment_method == "UPI" %}
+            <div class="mb-3">
+                <label class="form-label">UPI ID</label>
+                <input type="text" name="upi_id" class="form-control" required>
+            </div>
+            {% endif %}
+
+            {% if payment_method == "Card" %}
+            <div class="mb-3">
+                <label class="form-label">Card Number</label>
+                <input type="text" name="card_number" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Card Holder Name</label>
+                <input type="text" name="card_name" class="form-control" required>
+            </div>
+            {% endif %}
+
+            <button class="btn btn-success">Confirm Payment</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

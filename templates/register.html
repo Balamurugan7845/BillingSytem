@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Shop Billing System{% endblock %}
+
+{% block auth_content %}
+<div class="login-container d-flex align-items-center justify-content-center vh-100">
+    <div class="login-card shadow-lg p-4 rounded-4 bg-white" style="max-width:450px;width:100%;">
+        <div class="text-center mb-4">
+            <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
+            <h2 class="fw-bold text-success">Create Account</h2>
+            <p class="text-muted">Join Shop Billing System</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} text-center py-2 mb-3">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('register') }}" id="registerForm">
+            <div class="mb-3">
+                <label for="username" class="form-label fw-semibold">
+                    <i class="fas fa-user me-2 text-success"></i>Username
+                </label>
+                <input type="text" class="form-control" id="username" name="username" placeholder="Choose a username" required>
+                <div class="form-text">4-20 characters, letters and numbers only</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label fw-semibold">
+                    <i class="fas fa-lock me-2 text-success"></i>Password
+                </label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Create a password" required>
+                <div class="form-text">Minimum 6 characters</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="confirm_password" class="form-label fw-semibold">
+                    <i class="fas fa-lock me-2 text-success"></i>Confirm Password
+                </label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Re-enter your password" required>
+                <div class="form-text" id="passwordMatchText"></div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="agreeTerms" name="agree_terms" required>
+                <label class="form-check-label text-muted" for="agreeTerms">
+                    I agree to the <a href="#" class="text-success text-decoration-none">Terms and Conditions</a>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 py-2 mb-3">
+                <i class="fas fa-user-plus me-2"></i>Create Account
+            </button>
+        </form>
+
+        <div class="text-center">
+            <p class="text-muted mb-2">Already have an account?</p>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-success btn-sm">
+                <i class="fas fa-sign-in-alt me-1"></i>Sign In
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.login-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.login-card {
+    border: none;
+    backdrop-filter: blur(10px);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.form-control {
+    padding: 10px 15px;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.form-text {
+    font-size: 0.875rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    const passwordMatchText = document.getElementById('passwordMatchText');
+    const registerForm = document.getElementById('registerForm');
+
+    function checkPasswordMatch() {
+        if (confirmPassword.value === '') {
+            passwordMatchText.textContent = '';
+            passwordMatchText.className = 'form-text';
+            return;
+        }
+
+        if (password.value === confirmPassword.value) {
+            passwordMatchText.textContent = '✓ Passwords match';
+            passwordMatchText.className = 'form-text text-success';
+        } else {
+            passwordMatchText.textContent = '✗ Passwords do not match';
+            passwordMatchText.className = 'form-text text-danger';
+        }
+    }
+
+    password.addEventListener('input', checkPasswordMatch);
+    confirmPassword.addEventListener('input', checkPasswordMatch);
+
+    registerForm.addEventListener('submit', function(e) {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        const agreeTerms = document.getElementById('agreeTerms').checked;
+
+        if (username.length < 4 || username.length > 20) {
+            e.preventDefault();
+            alert('Username must be between 4-20 characters');
+            return;
+        }
+
+        if (password.length < 6) {
+            e.preventDefault();
+            alert('Password must be at least 6 characters long');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match');
+            return;
+        }
+
+        if (!agreeTerms) {
+            e.preventDefault();
+            alert('Please agree to the Terms and Conditions');
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

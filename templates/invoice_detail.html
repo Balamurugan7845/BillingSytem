@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice {{ bill[2] }} - Shop Billing System{% endblock %}
+{% block page_title %}Invoice Details - {{ bill[2] }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-file-invoice"></i> Invoice: {{ bill[2] }}
+                </h6>
+                <div class="btn-group">
+                    <a href="{{ url_for('generate_pdf', bill_id=bill[0]) }}" 
+                       class="btn btn-light btn-sm">
+                        <i class="fas fa-download"></i> Download PDF
+                    </a>
+                    <a href="{{ url_for('print_invoice', bill_id=bill[0]) }}" 
+                       class="btn btn-light btn-sm" target="_blank">
+                        <i class="fas fa-print"></i> Print
+                    </a>
+                    <a href="{{ url_for('invoices') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to Invoices
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4>Shop Billing System</h4>
+                        <p class="mb-1">123 College Street</p>
+                        <p class="mb-1">Academic City, AC 12345</p>
+                        <p class="mb-1">Phone: (555) 123-4567</p>
+                        <p class="mb-0">Email: shop@college.edu</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <h4>INVOICE</h4>
+                        <p class="mb-1"><strong>Bill No:</strong> {{ bill[2] }}</p>
+                        <p class="mb-1"><strong>Date:</strong> {{ bill[15].strftime('%B %d, %Y') }}</p>
+                        <p class="mb-1"><strong>Time:</strong> {{ bill[15].strftime('%I:%M %p') }}</p>
+                    </div>
+                </div>
+
+               
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <strong>Bill To:</strong>
+                            </div>
+                            <div class="card-body">
+                                {% if bill[16] %}
+                                <p class="mb-1"><strong>Name:</strong> {{ bill[16] }}</p>
+                                <p class="mb-1"><strong>Phone:</strong> {{ bill[17] or 'N/A' }}</p>
+                                <p class="mb-1"><strong>Email:</strong> {{ bill[18] or 'N/A' }}</p>
+                                <p class="mb-0"><strong>Address:</strong> {{ bill[19] or 'N/A' }}</p>
+                                {% else %}
+                                <p class="mb-0">Walk-in Customer</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <strong>Payment Information:</strong>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Payment Method:</strong> {{ bill[14] }}</p>
+                                <p class="mb-1"><strong>Status:</strong> <span class="badge bg-success">Paid</span></p>
+                                <p class="mb-0"><strong>GST Type:</strong> {{ bill[8] }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+           
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Product Name</th>
+                                <th class="text-end">Unit Price (₹)</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Total (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ item[6] }}</td>
+                                <td class="text-end">₹{{ "%.2f"|format(item[4]) }}</td>
+                                <td class="text-center">{{ item[3] }}</td>
+                                <td class="text-end">₹{{ "%.2f"|format(item[5]) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
+                                <td class="text-end">₹{{ "%.2f"|format(bill[3]) }}</td>
+                            </tr>
+                            {% if bill[6] > 0 %}
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Discount ({{ bill[4] }}):</strong></td>
+                                <td class="text-end">-₹{{ "%.2f"|format(bill[6]) }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Taxable Amount:</strong></td>
+                                <td class="text-end">₹{{ "%.2f"|format(bill[7]) }}</td>
+                            </tr>
+                            {% if bill[8] == 'cgst_sgst' %}
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>CGST (9%):</strong></td>
+                                <td class="text-end">₹{{ "%.2f"|format(bill[9]) }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>SGST (9%):</strong></td>
+                                <td class="text-end">₹{{ "%.2f"|format(bill[10]) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>IGST (18%):</strong></td>
+                                <td class="text-end">₹{{ "%.2f"|format(bill[11]) }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="table-primary">
+                                <td colspan="4" class="text-end"><strong>Grand Total:</strong></td>
+                                <td class="text-end"><strong>₹{{ "%.2f"|format(bill[13]) }}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Footer Notes -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <h6>Thank you for your business!</h6>
+                            <p class="mb-0">
+                                Terms & Conditions: Goods once sold cannot be returned or exchanged unless defective. 
+                                This is a computer generated invoice.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
